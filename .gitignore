@@ -1,0 +1,24 @@
+# Secrets — never commit
+.env
+.env.*
+*secret*
+*webhook*.txt
+*credential*.json
+*.pem
+*.key
+
+# n8n local data / credentials DB
+.n8n/
+n8n-*.sqlite
+
+# OS / editor
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Node / tooling
+node_modules/
+*.log
+
+# Playwright MCP scratch (kept out of the submission)
+.playwright-mcp/

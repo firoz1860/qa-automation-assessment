@@ -1,0 +1,377 @@
+{
+  "name": "Task2 GitHub Morning Brief - Firoz Ahmad",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "github-digest",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "24f31236-9831-4887-8faf-9d05c9d58299",
+      "name": "Webhook (GET github-digest)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        300
+      ],
+      "webhookId": "3c9282cc-bae7-4315-af1f-a4b1f282139e"
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/search/repositories?q=topic:javascript&sort=stars&order=desc&per_page=10",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-github-digest"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "6fc65c95-fb96-48b1-894f-bdfb4fb76a35",
+      "name": "GitHub Search Repos (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        180,
+        300
+      ],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate the GitHub search response, keep useful fields, sort by stars, keep top 5.\nconst res = $input.first().json;\nconst items = Array.isArray(res.items) ? res.items : null;\n\n// Malformed / empty payload -> throw so this routes to the error branch (not a silent empty digest).\nif (!items || items.length === 0) {\n  throw new Error('GitHub search returned no \"items\" array (malformed or empty payload).');\n}\n\nconst mapped = items.map((r) => ({\n  full_name: r.full_name,\n  name: r.name,\n  owner: r.owner && r.owner.login ? r.owner.login : (r.full_name || '/').split('/')[0],\n  repo: r.name,\n  url: r.html_url,\n  stars: typeof r.stargazers_count === 'number' ? r.stargazers_count : 0,\n  description: r.description || 'No description provided',\n}));\n\nmapped.sort((a, b) => b.stars - a.stars);\nconst top5 = mapped.slice(0, 5);\n\nreturn [{ json: { repos: top5, top: top5[0], count: top5.length, fetched_at: new Date().toISOString() } }];\n"
+      },
+      "id": "87ae31f2-5ccb-4d8a-9442-ee4a4321cb93",
+      "name": "Top 5 Repos (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        200
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{ encodeURIComponent($json.top.owner) }}/{{ encodeURIComponent($json.top.repo) }}/readme",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-github-digest"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "b2916b50-9d18-4b9b-91a7-999a52c2757c",
+      "name": "Enrich Top Repo README (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        200
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine the top-5 list (from the Code node) with the enriched README of the top repo.\n// The README HTTP node is set to \"Continue On Error (regular output)\"; on 404 the item\n// carries an error, so we degrade gracefully to \"README unavailable\" and still ship the digest.\nconst top5 = $('Top 5 Repos (Code)').first().json;\nconst repos = top5.repos || [];\nconst top = top5.top || {};\n\nconst readme = $input.first().json || {};\nlet readmeInfo;\nif (readme.error || !readme.name) {\n  readmeInfo = 'README unavailable';\n} else {\n  const sizeKb = typeof readme.size === 'number' ? Math.round((readme.size / 1024) * 10) / 10 : null;\n  readmeInfo = 'README `' + readme.name + '`' + (sizeKb != null ? ' (~' + sizeKb + ' KB)' : '');\n}\n\nconst lines = repos.map((r, i) =>\n  (i + 1) + '. [' + r.full_name + '](' + r.url + ') — ⭐ ' + Number(r.stars).toLocaleString() +\n  '\\n    ' + String(r.description).slice(0, 120)\n);\n\nconst stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');\nconst message =\n  '**Top 5 JavaScript repositories on GitHub**\\n' +\n  '_(morning brief · ' + stamp + ' UTC)_\\n\\n' +\n  lines.join('\\n') +\n  '\\n\\n🔎 Enriched top repo **' + (top.full_name || 'n/a') + '**: ' + readmeInfo;\n\nreturn [{ json: { message, top, repos, readme_info: readmeInfo } }];\n"
+      },
+      "id": "4d175781-a241-41ef-b013-64869d14e7a8",
+      "name": "Build Digest (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "2286011e-7020-4cd8-9a45-0d39a333d11d",
+              "leftValue": "={{ $json.top.stars }}",
+              "rightValue": 1000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fd6db32d-d054-4649-9309-a327986df441",
+      "name": "IF top stars > 1000",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1060,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9424f07a-a294-43a9-a4f7-8fde95c98689",
+              "name": "content",
+              "type": "string",
+              "value": "=🔥 **TRENDING** — the #1 JavaScript repo has more than 1,000 stars.\n\n{{ $json.message }}"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "id": "8eeab3e9-cc1a-4021-ba7c-c9138263d959",
+      "name": "Label: Trending",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d207014d-ef01-4ee6-b7b2-a8feccb17aa9",
+              "name": "content",
+              "type": "string",
+              "value": "=📋 **Daily digest** — top JavaScript repo is at or below 1,000 stars.\n\n{{ $json.message }}"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "id": "286114ba-9f32-4504-91fe-e1a638fd9d46",
+      "name": "Label: Normal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "732812dd-4b2b-4c01-ba98-6ea47a63d5bc",
+      "name": "Discord: Send Digest",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        200
+      ],
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL",
+          "name": "Discord Webhook (select yours after import)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turn any upstream failure (HTTP non-2xx, timeout, rate limit, or malformed payload)\n// into a single, honest alert. We deliberately DO NOT emit an empty success digest.\nconst inItem = $input.first().json || {};\nconst err = inItem.error || inItem;\nconst message = err.message || err.description || 'Unknown error';\nconst status = err.httpCode || err.statusCode || err.status || 'n/a';\n\nconst content =\n  '🚨 **GitHub Digest workflow — FAILURE**\\n' +\n  'The morning brief could NOT be generated, so no digest was sent.\\n' +\n  '• Status: ' + status + '\\n' +\n  '• Message: ' + String(message).slice(0, 400) + '\\n' +\n  '• Time: ' + new Date().toISOString();\n\nreturn [{ json: { content, status, error_message: String(message), timestamp: new Date().toISOString() } }];\n"
+      },
+      "id": "7278ee3a-c1ec-4c72-a9ad-5411039b219c",
+      "name": "Build Error Alert (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "93a613e0-13cc-4ace-8275-c60ac771ef91",
+      "name": "Discord: Send Failure Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        840,
+        460
+      ],
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL",
+          "name": "Discord Webhook (select yours after import)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook (GET github-digest)": {
+      "main": [
+        [
+          {
+            "node": "GitHub Search Repos (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub Search Repos (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Top 5 Repos (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Top 5 Repos (Code)": {
+      "main": [
+        [
+          {
+            "node": "Enrich Top Repo README (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Top Repo README (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Build Digest (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest (Code)": {
+      "main": [
+        [
+          {
+            "node": "IF top stars > 1000",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF top stars > 1000": {
+      "main": [
+        [
+          {
+            "node": "Label: Trending",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label: Normal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label: Trending": {
+      "main": [
+        [
+          {
+            "node": "Discord: Send Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label: Normal": {
+      "main": [
+        [
+          {
+            "node": "Discord: Send Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Alert (Code)": {
+      "main": [
+        [
+          {
+            "node": "Discord: Send Failure Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

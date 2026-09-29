@@ -1,0 +1,214 @@
+{
+  "name": "Bonus Uptime Monitor - Firoz Ahmad",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "20632552-02a1-41c3-836d-78543afe493c",
+      "name": "Every 5 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://demo.realworld.show",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "b3f6b22d-4fc9-49ca-9962-edc4d1b47f1a",
+      "name": "Ping target (HTTP GET)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read the HTTP node result WITHOUT throwing on non-200.\n// The HTTP node uses fullResponse + neverError, and On Error -> continue (regular output),\n// so this node sees either { statusCode, ... } or an { error } item on a network failure.\nconst j = $input.first().json || {};\nlet status = (typeof j.statusCode === 'number') ? j.statusCode\n           : (j.error ? (j.error.httpCode || j.error.statusCode || 0) : 0);\nconst up = status === 200;\nreturn [{ json: {\n  up,\n  status,\n  target: 'https://demo.realworld.show',\n  checked_at: new Date().toISOString(),\n} }];\n"
+      },
+      "id": "a27d02c4-b766-4514-847a-001b75c4054d",
+      "name": "Evaluate Status (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "ef79408b-283c-4dbe-8841-53fff0f5aa60",
+              "leftValue": "={{ $json.up }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "004f84d3-7202-49bf-b390-1d603688627d",
+      "name": "IF status != 200",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build a Discord alert only when the site is NOT returning 200.\nconst j = $input.first().json || {};\nconst content =\n  '🔴 **UPTIME ALERT** — target is DOWN or unhealthy\\n' +\n  '• URL: ' + j.target + '\\n' +\n  '• HTTP status: ' + (j.status || 'no response / network error') + '\\n' +\n  '• Checked: ' + j.checked_at + '\\n' +\n  '(Expected 200. Alerting via the same Discord channel as the digest.)';\nreturn [{ json: { content } }];\n"
+      },
+      "id": "7f2bc5c3-9cc4-410b-8a48-9fb204d82781",
+      "name": "Build Down Alert (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "id": "5a229a71-85e2-461c-afa7-dfff5971ef40",
+      "name": "Discord: Uptime Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        200
+      ],
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL",
+          "name": "Discord Webhook (select yours after import)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "e560d4e0-fb7f-43c6-98d1-2fe5aebe709f",
+      "name": "OK - no alert",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Every 5 minutes": {
+      "main": [
+        [
+          {
+            "node": "Ping target (HTTP GET)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ping target (HTTP GET)": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Status (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Status (Code)": {
+      "main": [
+        [
+          {
+            "node": "IF status != 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF status != 200": {
+      "main": [
+        [
+          {
+            "node": "Build Down Alert (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OK - no alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Down Alert (Code)": {
+      "main": [
+        [
+          {
+            "node": "Discord: Uptime Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
