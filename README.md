@@ -2,7 +2,7 @@
 
 **Candidate:** Firoz Ahmad · **Date:** 2026-09-29
 
-Two deliverables from the assessment, plus the optional bonus:
+Two deliverables from the assessment, plus the optional bonus: https://www.loom.com/share/4ba68aca277a40eeb088f0f11d07adfd
 
 | Task | What it is | Status |
 |------|-----------|--------|
