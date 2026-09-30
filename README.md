@@ -22,6 +22,7 @@ workflows/
   Bonus_UptimeMonitor_Firoz_Ahmad.json
 screenshots/                        ← real screenshots captured during Task 1 testing
 MANUAL_STEPS.md                     ← the exact steps only you can do (n8n + Discord + screenshots + Loom)
+WALKTHROUGH_SCRIPT.md               ← shot-by-shot script for the required walkthrough video
 ```
 
 ## Task 1 — QA report (summary)

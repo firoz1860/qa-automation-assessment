@@ -111,3 +111,15 @@ JSON contains **no** webhook URL — only a placeholder credential reference
 - ⏳ **Pending your run in n8n:** importing the JSON, selecting the Discord credential, and capturing
   the two required screenshots (canvas + successful execution). I could not execute inside your n8n
   account, so I have **not** claimed the Discord delivery succeeded — that step is yours.
+
+### Update — 2026-09-30 (re-verification)
+
+- 🔁 **Live GitHub API re-checked today** (unauthenticated `search/repositories`, `HTTP 200`): current
+  top-5 by stars = `freeCodeCamp/freeCodeCamp` (~456,543), `practical-tutorials/project-based-learning`
+  (~285,300), `facebook/react` (~250,837), `vuejs/vue` (~212,841), `trekhleb/javascript-algorithms`
+  (~196,844). The `stars > 1000` IF condition evaluates **true** → 🔥 TRENDING label fires. Star counts
+  drift slightly over time; the transform/branch logic is unchanged.
+- 🔌 **n8n MCP OAuth was initiated** from the automation session (server `firoz1860.app.n8n.cloud`,
+  scopes include `workflow:execute`, `credential:read`, `execution:read`). The in-n8n import, run,
+  failure-path test, and JSON re-export are ready to proceed once the operator completes the browser
+  authorization. **No Discord delivery is claimed** until an actual n8n execution confirms it.

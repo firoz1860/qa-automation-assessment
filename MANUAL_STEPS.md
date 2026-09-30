@@ -40,6 +40,9 @@ JSON, this repo, chat, screenshots, or the video.
 
 ## C. Loom video — REQUIRED by the assignment (~5 min)
 
+> A ready-to-record, shot-by-shot script is in **`WALKTHROUGH_SCRIPT.md`**. Recording it is a manual
+> step (no screen-recording tool is available to the automation), so this stays with you.
+
 Record a short walkthrough showing:
 - **one reproduced QA issue** (e.g. sign up with `notanemail` / password `1` → account created), and
 - the **Task 2** run: top-5 transform, README enrichment, the IF branch, the successful Discord digest,
