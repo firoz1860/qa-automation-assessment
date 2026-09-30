@@ -4,6 +4,14 @@ I built and verified everything I could from here. These steps require **your** 
 Discord webhook, and **you** on camera. Nowhere should a webhook URL/token be pasted into the workflow
 JSON, this repo, chat, screenshots, or the video.
 
+> **Update 2026-09-30:** both workflows were since **imported into your n8n and executed** by the
+> automation (Task 2 id `S4ZDlYmHw7tGrion`, Bonus id `OVvevoSqyVotFgSs`). The GitHub API, top-5
+> transform, README enrichment, IF/TRENDING branch, and the error path were all verified from real
+> executions (see `Task2_README.md`). **Two things still need you:** (1) create + select a **Discord
+> Webhook credential** so the Discord nodes can actually deliver (they currently error — no credential
+> exists), and (2) capture the screenshots + record the video. Steps A2/A4 and B1 below are the
+> credential parts that remain.
+
 ---
 
 ## A. Task 2 workflow — REQUIRED (~10 min)

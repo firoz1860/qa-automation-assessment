@@ -7,8 +7,16 @@ Two deliverables from the assessment, plus the optional bonus:
 | Task | What it is | Status |
 |------|-----------|--------|
 | **Task 1** | Live QA & debug report of a "vibe-coded" web app | ✅ Complete — 6 evidenced issues + root-cause analysis |
-| **Task 2** | n8n workflow: GitHub digest → enrich → branch → Discord | ✅ Built & logic-verified · ⏳ n8n run + screenshots are yours |
-| **Bonus** | n8n uptime monitor (5-min ping → Discord alert) | ✅ Built · ⏳ n8n run is yours |
+| **Task 2** | n8n workflow: GitHub digest → enrich → branch → Discord | ✅ Built · ✅ **imported & executed in n8n** (success + failure runs verified) · ⛔ Discord delivery pending a Discord Webhook credential · ⏳ screenshots are yours |
+| **Bonus** | n8n uptime monitor (5-min ping → Discord alert) | ✅ Built · ✅ **imported & executed in n8n** (200 → no-alert path, run `#1` success) · ⏳ screenshot is yours |
+
+> **n8n execution evidence (2026-09-30):** both workflows were imported into the connected n8n account
+> and run via the authenticated n8n MCP. Task 2 (`S4ZDlYmHw7tGrion`): success run built the correct
+> top-5 + README enrichment and fired the 🔥 TRENDING branch; failure run (temporary invalid host)
+> correctly took the error path; the Discord send nodes errored because **no Discord Webhook credential
+> exists yet** (no message was delivered — not claimed). Bonus (`OVvevoSqyVotFgSs`): success run pinged
+> `demo.realworld.show` → 200 → "OK, no alert". Full detail in `Task2_README.md`. The 5-minute schedule
+> is left **disabled** (workflows not activated).
 
 ## Repository contents
 
