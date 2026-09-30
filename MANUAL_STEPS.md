@@ -4,13 +4,13 @@ I built and verified everything I could from here. These steps require **your** 
 Discord webhook, and **you** on camera. Nowhere should a webhook URL/token be pasted into the workflow
 JSON, this repo, chat, screenshots, or the video.
 
-> **Update 2026-09-30:** both workflows were since **imported into your n8n and executed** by the
-> automation (Task 2 id `S4ZDlYmHw7tGrion`, Bonus id `OVvevoSqyVotFgSs`). The GitHub API, top-5
-> transform, README enrichment, IF/TRENDING branch, and the error path were all verified from real
-> executions (see `Task2_README.md`). **Two things still need you:** (1) create + select a **Discord
-> Webhook credential** so the Discord nodes can actually deliver (they currently error — no credential
-> exists), and (2) capture the screenshots + record the video. Steps A2/A4 and B1 below are the
-> credential parts that remain.
+> **Update 2026-09-30 — Discord delivery CONFIRMED:** both workflows were **imported, executed, and
+> Discord delivery verified** in your n8n (Task 2 id `S4ZDlYmHw7tGrion`, Bonus id `OVvevoSqyVotFgSs`).
+> With your **Discord Webhook** credential attached, `Discord: Send Digest` (exec `#5`), `Discord: Send
+> Failure Alert` (exec `#6`), and `Discord: Uptime Alert` (exec `#7`) each executed successfully and
+> returned `{"success": true}` (see `Task2_README.md`). Temporary test hosts were restored; the
+> 5-minute schedule is left disabled. **Only two manual items remain for you:** capture the
+> screenshots (§A5 / §B2) and record the walkthrough video (§C).
 
 ---
 

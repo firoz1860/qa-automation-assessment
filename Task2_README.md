@@ -112,33 +112,34 @@ JSON contains **no** webhook URL — only a placeholder credential reference
   the two required screenshots (canvas + successful execution). I could not execute inside your n8n
   account, so I have **not** claimed the Discord delivery succeeded — that step is yours.
 
-### Update — 2026-09-30 — actual n8n execution evidence
+### Update — 2026-09-30 — actual n8n execution evidence (Discord delivery CONFIRMED)
 
 The workflow was **imported into n8n and executed** by the automation session via the authenticated
 n8n MCP. Live workflow: `Task2 GitHub Morning Brief - Firoz Ahmad` — id `S4ZDlYmHw7tGrion`, personal
-project (`https://firoz1860.app.n8n.cloud/workflow/S4ZDlYmHw7tGrion`). This committed JSON is the
-exact, portable, secret-free version that workflow was built from and run against.
+project (`https://firoz1860.app.n8n.cloud/workflow/S4ZDlYmHw7tGrion`). The committed JSON is the exact,
+portable, secret-free version (Discord nodes carry a credential *placeholder* — the real Discord
+Webhook credential lives only in n8n).
 
-**Success run — execution `#2` (2026-09-30T05:09 UTC):**
-- ✅ GitHub Search → **HTTP 200**, live items returned.
-- ✅ Top-5 transform → exactly **5**, sorted by stars: freeCodeCamp/freeCodeCamp (456,543),
-  practical-tutorials/project-based-learning (285,304), react/react (250,837), vuejs/vue (212,841),
-  trekhleb/javascript-algorithms (196,844).
-- ✅ README enrichment → `README.md` (~6.4 KB) on the #1 repo.
-- ✅ IF `stars > 1000` → routed **[true: 1 item, false: 0]** → 🔥 TRENDING label fired; digest rendered
-  in full (verified in the node output).
-- ⛔ **Discord: Send Digest → error, message NOT delivered.** n8n `NodeOperationError` because **no
-  Discord Webhook credential exists** in the account. No delivery is claimed.
+**✅ Success run — execution `#5` (2026-09-30T05:57 UTC):**
+- GitHub Search → **HTTP 200**; Top-5 transform → exactly **5**, sorted by stars (freeCodeCamp
+  456,543 → practical-tutorials 285,304 → react 250,837 → vuejs/vue 212,841 → javascript-algorithms
+  196,844); README enrichment → `README.md` (~6.4 KB); IF `stars > 1000` → **[true:1, false:0]** →
+  🔥 TRENDING label fired.
+- **`Discord: Send Digest` executed successfully — node returned `{"success": true}`. Digest delivered
+  to Discord.**
 
-**Failure run — execution `#3` (2026-09-30T05:10 UTC):** the search host was temporarily set to
+**✅ Failure run — execution `#6` (2026-09-30T05:58 UTC):** search host temporarily set to
 `api.github.invalid` → **`ENOTFOUND`** routed to the node's **error output** → `Build Error Alert`
-produced the `🚨 … FAILURE … no digest was sent` message, and the success branch was correctly skipped
-(no empty digest). `Discord: Send Failure Alert` → **error, not delivered** (same missing-credential
-cause). The correct API host was **restored** immediately afterward.
+produced the `🚨 … FAILURE … no digest was sent` message; the success branch was correctly skipped.
+**`Discord: Send Failure Alert` executed successfully — node returned `{"success": true}`. Failure
+alert delivered.** The correct API host was **restored** immediately afterward.
 
-**Remaining step for real Discord delivery (only you can do it):** create a **Discord Webhook**
-credential in n8n (*Credentials → New → "Discord Webhook"*, paste your channel webhook URL — a secret
-that must never be committed), select it on **Discord: Send Digest** and **Discord: Send Failure
-Alert**, and re-run. The automation could not: no Discord credential existed, this MCP exposes no
-credential-creation tool, and the secret URL must be entered by you. (The public GitHub API was also
-re-verified standalone the same day: `HTTP 200`, identical top-5.)
+**Credential note (honesty):** the first attempts (executions `#2`/`#3`) predated any Discord
+credential and the Discord nodes errored (no delivery — not claimed at the time). Delivery was only
+confirmed once a **Discord Webhook** credential (`discordWebhookApi`, "Discord Webhook account") was
+attached to the Discord nodes and the dropped `content: {{ $json.content }}` wiring was restored; the
+webhook URL/secret was entered by the operator in n8n and is **not** present in this repo.
+
+The bonus uptime monitor's alert path was likewise verified (execution `#7`): a temporary down target
+drove `Discord: Uptime Alert` to execute successfully (`{"success": true}`), then the real target
+(`https://demo.realworld.show`) was restored and the 5-minute schedule left disabled.
