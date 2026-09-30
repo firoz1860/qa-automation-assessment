@@ -7,8 +7,8 @@ Two deliverables from the assessment, plus the optional bonus:
 | Task | What it is | Status |
 |------|-----------|--------|
 | **Task 1** | Live QA & debug report of a "vibe-coded" web app | ✅ Complete — 6 evidenced issues + root-cause analysis |
-| **Task 2** | n8n workflow: GitHub digest → enrich → branch → Discord | ✅ Built · ✅ **imported, executed & Discord delivery verified in n8n** (exec `#5` digest + `#6` failure alert, both `{"success":true}`) · ⏳ screenshots are yours |
-| **Bonus** | n8n uptime monitor (5-min ping → Discord alert) | ✅ Built · ✅ **imported & executed** (no-alert run `#1`, alert run `#7` Discord `{"success":true}`) · ⏳ screenshot is yours |
+| **Task 2** | n8n workflow: GitHub digest → enrich → branch → Discord | ✅ Built · ✅ **imported, executed & Discord delivery verified in n8n** (exec `#5` digest + `#6` failure alert, both `{"success":true}`) · ✅ canvas + success screenshots captured |
+| **Bonus** | n8n uptime monitor (5-min ping → Discord alert) | ✅ Built · ✅ **imported & executed** (no-alert run `#1`, alert run `#7` Discord `{"success":true}`) · ✅ canvas screenshot captured |
 
 > **n8n execution evidence (2026-09-30) — Discord delivery CONFIRMED:** both workflows were imported
 > into the connected n8n account and run via the authenticated n8n MCP. After a **Discord Webhook**

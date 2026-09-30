@@ -9,8 +9,10 @@ JSON, this repo, chat, screenshots, or the video.
 > With your **Discord Webhook** credential attached, `Discord: Send Digest` (exec `#5`), `Discord: Send
 > Failure Alert` (exec `#6`), and `Discord: Uptime Alert` (exec `#7`) each executed successfully and
 > returned `{"success": true}` (see `Task2_README.md`). Temporary test hosts were restored; the
-> 5-minute schedule is left disabled. **Only two manual items remain for you:** capture the
-> screenshots (§A5 / §B2) and record the walkthrough video (§C).
+> 5-minute schedule is left disabled. The three n8n screenshots (`screenshots/task2-canvas.png`,
+> `task2-success.png`, `bonus-canvas.png`) were **captured from the live n8n UI** and committed.
+> **The only remaining manual item is recording the walkthrough video (§C)** — no screen-recording
+> tool is available to the automation, so an authentic Loom recording can't be produced from here.
 
 ---
 
